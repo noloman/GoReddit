@@ -23,6 +23,7 @@ type Comment struct {
 	Votes   int       `db:"votes"`
 }
 
+// ThreadStore is an interface abstraction for interacting with threads
 type ThreadStore interface {
 	Thread(id uuid.UUID) (Thread, error)
 	Threads() ([]Thread, error)
@@ -31,6 +32,7 @@ type ThreadStore interface {
 	DeleteThread(id uuid.UUID) error
 }
 
+// PostStore is an interface abstraction for interacting with posts
 type PostStore interface {
 	Post(id uuid.UUID) (Post, error)
 	PostsByThread(ThreadID uuid.UUID) ([]Post, error)
@@ -39,6 +41,7 @@ type PostStore interface {
 	DeletePost(id uuid.UUID) error
 }
 
+// CommentStore is an interface abstraction for interacting with comments
 type CommentStore interface {
 	Comment(id uuid.UUID) (Comment, error)
 	CommentsByPost(PostID uuid.UUID) ([]Comment, error)
