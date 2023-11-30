@@ -47,7 +47,7 @@ func (c *CommentStore) UpdateComment(t *goreddit.Comment) error {
 }
 
 func (c *CommentStore) DeleteComment(id uuid.UUID) error {
-	if _, err := c.Exec(`DELETE * FROM comments where post_id = $1`, id); err != nil {
+	if _, err := c.Exec(`DELETE FROM comments where post_id = $1`, id); err != nil {
 		return fmt.Errorf("Error deleting comment: %w", err)
 	}
 	return nil

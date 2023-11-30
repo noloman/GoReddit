@@ -50,7 +50,7 @@ func (s *ThreadStore) UpdateThread(t *goreddit.Thread) error {
 }
 
 func (s *ThreadStore) DeleteThread(id uuid.UUID) error {
-	if _, err := s.Exec(`DELETE * FROM threads WHERE id = $1`, id); err != nil {
+	if _, err := s.Exec(`DELETE FROM threads WHERE id = $1`, id); err != nil {
 		return fmt.Errorf("Error deleting thread: %w", err)
 	}
 	return nil

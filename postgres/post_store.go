@@ -51,7 +51,7 @@ func (s *PostStore) UpdatePost(p *goreddit.Post) error {
 }
 
 func (s *PostStore) DeletePost(id uuid.UUID) error {
-	if _, err := s.Exec(`DELETE * FROM posts WHERE id = $1`, id); err != nil {
+	if _, err := s.Exec(`DELETE FROM posts WHERE id = $1`, id); err != nil {
 		return fmt.Errorf("Error deleting post: %w", err)
 	}
 	return nil
