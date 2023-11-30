@@ -23,7 +23,7 @@ func (s *PostStore) Post(id uuid.UUID) (goreddit.Post, error) {
 func (s *PostStore) PostsByThread(ThreadID uuid.UUID) ([]goreddit.Post, error) {
 	var pp []goreddit.Post
 	if err := s.Get(&pp, `SELECT * FROM posts WHERE thread_id = $1`, ThreadID); err != nil {
-		return nil, fmt.Errorf("Error fetching posts by thread: %w", &err)
+		return nil, fmt.Errorf("Error fetching posts by thread: %w", err)
 	}
 	return pp, nil
 }
