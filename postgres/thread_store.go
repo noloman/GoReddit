@@ -8,13 +8,6 @@ import (
 	"github.com/noloman/goreddit"
 )
 
-// NewThreadStore is the constructor for ThreadStore
-func NewThreadStore(db *sqlx.DB) *ThreadStore {
-	return &ThreadStore{
-		DB: db,
-	}
-}
-
 // ThreadStore is a struct with a reference to sqlx.DB
 type ThreadStore struct {
 	*sqlx.DB

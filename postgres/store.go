@@ -5,14 +5,13 @@ import (
 
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq" // side effect for Go Postgres driver for the database/sql package
-	"github.com/noloman/goreddit"
 )
 
 // Store struct that contains the PostgreSQL stores
 type Store struct {
-	goreddit.ThreadStore
-	goreddit.PostStore
-	goreddit.CommentStore
+	*ThreadStore
+	*PostStore
+	*CommentStore
 }
 
 // NewStore creates a concrete implementation of the Store struct with the dataSourceName
@@ -25,8 +24,8 @@ func NewStore(dataSourceName string) (*Store, error) {
 		return nil, fmt.Errorf("Error connecting to database: %w", err)
 	}
 	return &Store{
-		ThreadStore:  NewThreadStore(db),
-		PostStore:    NewPostStore(db),
-		CommentStore: NewCommentStore(db),
+		ThreadStore:  &ThreadStore{DB: db},
+		PostStore:    &PostStore{DB: &sqlx.DB{}},
+		CommentStore: &CommentStore{DB: db},
 	}, nil
 }

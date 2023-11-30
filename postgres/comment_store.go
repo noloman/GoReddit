@@ -12,11 +12,6 @@ type CommentStore struct {
 	*sqlx.DB
 }
 
-// NewCommentStore is the constructor to return a pointer to *CommentStore given a DB
-func NewCommentStore(db *sqlx.DB) *CommentStore {
-	return &CommentStore{DB: db}
-}
-
 func (c *CommentStore) Comment(id uuid.UUID) (goreddit.Comment, error) {
 	var cm goreddit.Comment
 	if err := c.Get(cm, `SELECT * FROM comments where id = $1`, id); err != nil {
