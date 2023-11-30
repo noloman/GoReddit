@@ -8,7 +8,7 @@ import (
 	"github.com/noloman/goreddit"
 )
 
-func NewPostStore(db sqlx.DB) *PostStore {
+func NewPostStore(db *sqlx.DB) *PostStore {
 	return &PostStore{
 		DB: &sqlx.DB{},
 	}
