@@ -49,3 +49,10 @@ type CommentStore interface {
 	UpdateComment(t *Comment) error
 	DeleteComment(id uuid.UUID) error
 }
+
+// Store is a wrapper to help pass our DB stores to our app server using DI
+type Store interface {
+	ThreadStore
+	PostStore
+	CommentStore
+}
