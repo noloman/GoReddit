@@ -21,36 +21,25 @@ func NewHandler(store goreddit.Store) *Handler {
 		Store: store,
 	}
 	h.Use(middleware.Logger)
+	h.Get("/", h.Home())
 	h.Route("/threads", func(r chi.Router) {
 		r.Get("/", h.ThreadsList())
 		r.Get("/new", h.ThreadsCreate())
 		r.Post("/", h.ThreadsStore())
+		r.Get("/{id}", h.ThreadsShow())
 		r.Post("/{id}/delete", h.ThreadsDelete())
+		r.Get("/{id}/new", h.PostCreate())
+		r.Post("/{id}", h.PostsStore())
+		r.Get("/{threadID}/{postID}", h.PostsShow())
 	})
 	return h
 }
-
-const threadsHTML = `
-<h1>Threads</h1>
-<dl>
-	{{range .Threads}}
-		<dt><strong>{{.Title}}</strong></dt>
-		<dd>{{.Description}}</dd>
-		<dd>
-			<form action="/threads/{{.ID}}/delete" method="POST">
-				<button type="submit">Delete</button>
-			</form>
-		</dd>
-	{{end}}
-</dl>
-<a href="/threads/new">New thread</a>
-`
 
 func (h *Handler) ThreadsList() http.HandlerFunc {
 	type data struct {
 		Threads []goreddit.Thread
 	}
-	tmpl := template.Must(template.New("").Parse(threadsHTML))
+	tmpl := template.Must(template.ParseFiles("templates/layout.html", "templates/threads.html"))
 	return func(w http.ResponseWriter, r *http.Request) {
 		tt, err := h.Store.Threads()
 		if err != nil {
@@ -61,28 +50,55 @@ func (h *Handler) ThreadsList() http.HandlerFunc {
 	}
 }
 
-const threadCreateHTML = `
-<h1>New thread</h1>
-<form action="/threads" method="POST">
-	<table>
-		<tr>
-			<td>Title</td>
-			<td><input type="text" name="title" /></td>
-		</tr>
-		<tr>
-			<td>Description</td>
-			<td><input type="text" name="description" /></td>
-		</tr>
-	</table>
-	<button type="submit">Create thread</button>
-</form>
-<a href="/threads">Threads</a>
-`
-
-func (h *Handler) ThreadsCreate() http.HandlerFunc {
-	tmpl := template.Must(template.New("").Parse(threadCreateHTML))
+func (h *Handler) Home() http.HandlerFunc {
+	tmpl := template.Must(template.ParseFiles("templates/layout.html", "templates/home.html"))
 	return func(w http.ResponseWriter, r *http.Request) {
 		tmpl.Execute(w, nil)
+	}
+}
+
+func (h *Handler) PostsShow() http.HandlerFunc {
+	tmpl := template.Must(template.ParseFiles("templates/layout.html", "templates/post.html"))
+	return func(w http.ResponseWriter, r *http.Request) {
+		tmpl.Execute(w, nil)
+	}
+}
+
+func (h *Handler) ThreadsCreate() http.HandlerFunc {
+	tmpl := template.Must(template.ParseFiles("templates/layout.html", "templates/thread_create.html"))
+	return func(w http.ResponseWriter, r *http.Request) {
+		tmpl.Execute(w, nil)
+	}
+}
+
+func (h *Handler) PostCreate() http.HandlerFunc {
+	tmpl := template.Must(template.ParseFiles("templates/layout.html", "templates/post_create.html"))
+	return func(w http.ResponseWriter, r *http.Request) {
+		tmpl.Execute(w, nil)
+	}
+}
+
+func (h *Handler) ThreadsShow() http.HandlerFunc {
+	tmpl := template.Must(template.ParseFiles("templates/layout.html", "templates/threads.html"))
+	return func(w http.ResponseWriter, r *http.Request) {
+		tmpl.Execute(w, nil)
+	}
+}
+
+func (h *Handler) PostsStore() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		title := r.FormValue("title")
+		description := r.FormValue("description")
+
+		if err := h.Store.CreateThread(&goreddit.Thread{
+			ID:          uuid.New(),
+			Title:       title,
+			Description: description,
+		}); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		http.Redirect(w, r, "/threads", http.StatusFound)
 	}
 }
 
