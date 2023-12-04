@@ -13,12 +13,15 @@
     </nav>
     <div class="header bg-light border-bottom border-top py-5">
         <div class="container">
+            {{ define "header" }}
             <h1 class="mb-0">Welcome to goreddit</h1>
+            {{ end }}
         </div>
     </div>
     <div class="container py-5">
         <div class="row">
             <div class="col-xl-8 order-1 order-xl-0">
+                {{ define "content "}}
                 <div class="card mb-4">
                     <div class="d-flex">
                         <div class="py-4 pl-4 text-center flex-shrink-0" style="width: 3rem">
@@ -86,8 +89,10 @@
                         </div>
                     </div>
                 </div>
+                {{ end }}
             </div>
             <div class="col-xl-4 order-0 order-xl-1">
+                {{ define "sidebar "}}
                 <div class="card mb-4">
                     <div class="card-body">
                         <h5 class="card-title">Explore interesting threads</h5>
@@ -95,6 +100,7 @@
                         <a href="#" class="btn btn-primary btn-block">Browse Threads</a>
                     </div>
                 </div>
+                {{ end }}
             </div>
         </div>
     </div>
