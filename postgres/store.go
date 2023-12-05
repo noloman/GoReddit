@@ -25,7 +25,7 @@ func NewStore(dataSourceName string) (*Store, error) {
 	}
 	return &Store{
 		ThreadStore:  &ThreadStore{DB: db},
-		PostStore:    &PostStore{DB: &sqlx.DB{}},
+		PostStore:    &PostStore{DB: db},
 		CommentStore: &CommentStore{DB: db},
 	}, nil
 }
