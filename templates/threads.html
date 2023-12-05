@@ -1,26 +1,23 @@
 {{ define "header" }}
-<h1 class="mb-0">Explore threads</h1>
+    <h1 class="mb-0">Explore threads</h1>
 {{ end }}
 {{ define "content" }}
-<div class="card mb-4">
-    <div class="card-body">
-        <a href="#" class="d-block card-title text-body mt-1 h5">
-            The Go Programming Language
-        </a>
-        <p class="card-text">Ask questions and post articles about the Go
-            programming
-            language and
-            related tools, events etc.</p>
-        <a href="thread.html" class="btn btn-primary">Browse Thread</a>
-    </div>
-</div>
+    {{ range .Threads }}
+        <div class="card mb-4">
+            <div class="card-body">
+                <a href="/threads/{{.ID}}" class="d-block card-title text-body mt-1 h5">{{.Title}}</a>
+                <p class="card-text">{{.Description}}</p>
+                <a href="/threads/{{.ID}}" class="btn btn-primary">Browse Thread</a>
+            </div>
+        </div>
+    {{ end }}
 {{ end }}
 {{ define "sidebar" }}
-<div class="card mb-4">
-    <div class="card-body">
-        <h5 class="card-title">Create a new thread</h5>
-        <p class="card-text">Start a new community on goreddit and share experiences.</p>
-        <a href="#" class="btn btn-primary btn-block">Create Thread</a>
+    <div class="card mb-4">
+        <div class="card-body">
+            <h5 class="card-title">Create a new thread</h5>
+            <p class="card-text">Start a new community on goreddit and share experiences.</p>
+            <a href="/threads/new" class="btn btn-primary btn-block">Create Thread</a>
+        </div>
     </div>
-</div>
 {{ end }}

@@ -20,16 +20,17 @@ func (s *PostStore) Post(id uuid.UUID) (goreddit.Post, error) {
 	return p, nil
 }
 
-func (s *PostStore) PostsByThread(ThreadID uuid.UUID) ([]goreddit.Post, error) {
-	var pp []goreddit.Post
-	if err := s.Get(&pp, `SELECT * FROM posts WHERE thread_id = $1`, ThreadID); err != nil {
+func (s *PostStore) PostsByThread(threadID uuid.UUID) ([]goreddit.Post, error) {
+	var posts []goreddit.Post
+	if err := s.Select(&posts, "SELECT * FROM posts WHERE thread_id = $1", threadID); err != nil {
 		return nil, fmt.Errorf("Error fetching posts by thread: %w", err)
 	}
-	return pp, nil
+	return posts, nil
 }
 
 func (s *PostStore) CreatePost(p *goreddit.Post) error {
-	if err := s.Get(p, `INSERT INTO post VALUES ($1, $2, $3, $4) RETURNING *`,
+	if err := s.Get(p, `INSERT INTO posts VALUES ($1, $2, $3, $4, $5) RETURNING *`,
+		p.ID,
 		p.ThreadID,
 		p.Title,
 		p.Content,
