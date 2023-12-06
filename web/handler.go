@@ -32,8 +32,41 @@ func NewHandler(store goreddit.Store) *Handler {
 		r.Get("/{id}/new", h.PostCreate())
 		r.Post("/{id}", h.PostsStore())
 		r.Get("/{threadID}/{postID}", h.PostsShow())
+		r.Post("/{threadID}/{postID}", h.CommentsStore())
 	})
+	h.Get("/comments/{id}/vote", h.CommentsVote())
 	return h
+}
+
+func (h *Handler) CommentsVote() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		idStr := chi.URLParam(r, "id")
+
+		id, err := uuid.Parse(idStr)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		c, err := h.store.Comment(id)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		dir := r.URL.Query().Get("dir")
+		if dir == "up" {
+			c.Votes++
+		} else {
+			c.Votes--
+		}
+
+		if err := h.store.UpdateComment(&c); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		http.Redirect(w, r, r.Referer(), http.StatusFound)
+	}
 }
 
 func (h *Handler) ThreadsList() http.HandlerFunc {
@@ -60,8 +93,9 @@ func (h *Handler) Home() http.HandlerFunc {
 
 func (h *Handler) PostsShow() http.HandlerFunc {
 	type data struct {
-		Thread goreddit.Thread
-		Post   goreddit.Post
+		Thread   goreddit.Thread
+		Post     goreddit.Post
+		Comments []goreddit.Comment
 	}
 
 	tmpl := template.Must(template.ParseFiles("templates/layout.html", "templates/post.html"))
@@ -86,12 +120,18 @@ func (h *Handler) PostsShow() http.HandlerFunc {
 			http.NotFound(w, r)
 			return
 		}
+
+		cc, err := h.store.CommentsByPost(p.ID)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+		}
+
 		t, err := h.store.Thread(threadID)
 		if err != nil {
 			http.NotFound(w, r)
 			return
 		}
-		tmpl.Execute(w, data{Thread: t, Post: p})
+		tmpl.Execute(w, data{Thread: t, Post: p, Comments: cc})
 	}
 }
 
@@ -145,6 +185,9 @@ func (h *Handler) ThreadsShow() http.HandlerFunc {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
+		for _, post := range pp {
+			fmt.Println(post.Title)
+		}
 		tmpl.Execute(w, data{Thread: t, Posts: pp})
 	}
 }
@@ -176,6 +219,28 @@ func (h *Handler) PostsStore() http.HandlerFunc {
 			return
 		}
 		http.Redirect(w, r, "/threads/"+t.ID.String()+"/"+p.ID.String(), http.StatusFound)
+	}
+}
+
+func (h *Handler) CommentsStore() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		content := r.FormValue("content")
+		idStr := chi.URLParam(r, "postID")
+		id, err := uuid.Parse(idStr)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		if err := h.store.CreateComment(
+			&goreddit.Comment{
+				ID:      uuid.New(),
+				PostID:  id,
+				Content: content,
+			}); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		http.Redirect(w, r, r.Referer(), http.StatusFound)
 	}
 }
 
