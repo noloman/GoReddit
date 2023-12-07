@@ -1,6 +1,8 @@
 package goreddit
 
-import "github.com/google/uuid"
+import (
+	"github.com/google/uuid"
+)
 
 type Thread struct {
 	ID          uuid.UUID `db:"id"`
@@ -15,6 +17,7 @@ type Post struct {
 	Content       string    `db:"content"`
 	Votes         int       `db:"votes"`
 	CommentsCount int       `db:"comments_count"`
+	ThreadTitle   string    `db:"thread_title"`
 }
 
 type Comment struct {
@@ -37,6 +40,7 @@ type ThreadStore interface {
 type PostStore interface {
 	Post(id uuid.UUID) (Post, error)
 	PostsByThread(ThreadID uuid.UUID) ([]Post, error)
+	Posts() ([]Post, error)
 	CreatePost(t *Post) error
 	UpdatePost(t *Post) error
 	DeletePost(id uuid.UUID) error

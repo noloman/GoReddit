@@ -38,6 +38,24 @@ func (s *PostStore) PostsByThread(threadID uuid.UUID) ([]goreddit.Post, error) {
 	return pp, nil
 }
 
+func (s *PostStore) Posts() ([]goreddit.Post, error) {
+	var pp []goreddit.Post
+	var query = `
+		SELECT
+			posts.*,
+			COUNT(comments.*) AS comments_count,
+			threads.title AS thread_title
+		FROM posts
+		LEFT JOIN comments ON comments.post_id = posts.id
+		LEFT JOIN threads on threads.id = posts.thread_id
+		GROUP BY posts.id, threads.id
+		ORDER BY votes DESC`
+	if err := s.Select(&pp, query); err != nil {
+		return []goreddit.Post{}, fmt.Errorf("Error fetching posts by thread: %w", err)
+	}
+	return pp, nil
+}
+
 func (s *PostStore) CreatePost(p *goreddit.Post) error {
 	if err := s.Get(p, `INSERT INTO posts VALUES ($1, $2, $3, $4, $5) RETURNING *`,
 		p.ID,
