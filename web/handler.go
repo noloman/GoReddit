@@ -24,17 +24,23 @@ func NewHandler(store goreddit.Store) *Handler {
 	h.Use(middleware.Logger)
 	h.Get("/", h.Home())
 	h.Route("/threads", func(r chi.Router) {
+		// THREADS
 		r.Get("/", h.ThreadsList())
 		r.Get("/new", h.ThreadsCreate())
 		r.Post("/", h.ThreadsStore())
-		r.Get("/{id}", h.ThreadsShow())
 		r.Post("/{id}/delete", h.ThreadsDelete())
-		r.Get("/{id}/new", h.PostCreate())
+		r.Get("/{id}", h.ThreadsShow())
+
+		// POSTS
 		r.Post("/{id}", h.PostsStore())
+		r.Get("/{threadID}/new", h.PostCreate())
 		r.Get("/{threadID}/{postID}", h.PostsShow())
+
+		// COMMENTS
 		r.Post("/{threadID}/{postID}", h.CommentsStore())
 	})
 	h.Get("/comments/{id}/vote", h.CommentsVote())
+	h.Get("/posts/{id}/vote", h.PostsVote())
 	return h
 }
 
@@ -62,6 +68,38 @@ func (h *Handler) CommentsVote() http.HandlerFunc {
 		}
 
 		if err := h.store.UpdateComment(&c); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		http.Redirect(w, r, r.Referer(), http.StatusFound)
+	}
+}
+
+func (h *Handler) PostsVote() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		idStr := chi.URLParam(r, "id")
+
+		id, err := uuid.Parse(idStr)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		p, err := h.store.Post(id)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		dir := r.URL.Query().Get("dir")
+		if dir == "up" {
+			p.Votes++
+		} else {
+			p.Votes--
+		}
+		fmt.Print(p)
+
+		if err := h.store.UpdatePost(&p); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
@@ -148,7 +186,7 @@ func (h *Handler) PostCreate() http.HandlerFunc {
 	}
 	tmpl := template.Must(template.ParseFiles("templates/layout.html", "templates/post_create.html"))
 	return func(w http.ResponseWriter, r *http.Request) {
-		idStr := chi.URLParam(r, "id")
+		idStr := chi.URLParam(r, "threadID")
 		id, err := uuid.Parse(idStr)
 		if err != nil {
 			http.NotFound(w, r)
@@ -184,9 +222,6 @@ func (h *Handler) ThreadsShow() http.HandlerFunc {
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
-		}
-		for _, post := range pp {
-			fmt.Println(post.Title)
 		}
 		tmpl.Execute(w, data{Thread: t, Posts: pp})
 	}

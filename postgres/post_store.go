@@ -21,11 +21,11 @@ func (s *PostStore) Post(id uuid.UUID) (goreddit.Post, error) {
 }
 
 func (s *PostStore) PostsByThread(threadID uuid.UUID) ([]goreddit.Post, error) {
-	var posts []goreddit.Post
-	if err := s.Select(&posts, "SELECT * FROM posts WHERE thread_id = $1", threadID); err != nil {
+	var pp []goreddit.Post
+	if err := s.Select(&pp, "SELECT * FROM posts WHERE thread_id = $1 ORDER BY votes DESC", threadID); err != nil {
 		return nil, fmt.Errorf("Error fetching posts by thread: %w", err)
 	}
-	return posts, nil
+	return pp, nil
 }
 
 func (s *PostStore) CreatePost(p *goreddit.Post) error {
@@ -41,11 +41,12 @@ func (s *PostStore) CreatePost(p *goreddit.Post) error {
 }
 
 func (s *PostStore) UpdatePost(p *goreddit.Post) error {
-	if err := s.Get(p, `UPDATE posts SET thread_id = $1, title = $2, content = $3, votes = $4 RETURNING *`,
+	if err := s.Get(p, `UPDATE posts SET thread_id = $1, title = $2, content = $3, votes = $4 WHERE id = $5 RETURNING *`,
 		p.ThreadID,
 		p.Title,
 		p.Content,
-		p.Votes); err != nil {
+		p.Votes,
+		p.ID); err != nil {
 		return fmt.Errorf("Error updating post: %w", err)
 	}
 	return nil

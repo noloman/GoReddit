@@ -40,7 +40,8 @@ func (c *CommentStore) CreateComment(cmt *goreddit.Comment) error {
 }
 
 func (c *CommentStore) UpdateComment(t *goreddit.Comment) error {
-	if err := c.Get(t, `UPDATE comments SET post_id = $1, content = $2, votes = $3 RETURNING *`,
+	if err := c.Get(t, `UPDATE comments SET post_id = $1, content = $2, votes = $3 WHERE id = $1 RETURNING *`,
+		t.ID,
 		t.PostID,
 		t.Content,
 		t.Votes); err != nil {
