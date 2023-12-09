@@ -45,7 +45,8 @@
     </div>
 </div>
 <div class="text-center">
-    <form>
+    <form method="/threads/{{.Thread.ID}}/delete" method="POST">
+        {{.CSRF}}
         <button type="submit" class="text-danger btn-sm btn btn-link">Delete this thread</button>
     </form>
 </div>
