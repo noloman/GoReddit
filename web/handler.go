@@ -6,6 +6,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	"github.com/gorilla/csrf"
 	"github.com/noloman/goreddit"
 )
 
@@ -14,7 +15,7 @@ type Handler struct {
 	store goreddit.Store
 }
 
-func NewHandler(store goreddit.Store) *Handler {
+func NewHandler(store goreddit.Store, csrfKey []byte) *Handler {
 	h := &Handler{
 		Mux:   chi.NewMux(),
 		store: store,
@@ -25,6 +26,8 @@ func NewHandler(store goreddit.Store) *Handler {
 	posts := PostsHandler{store: store}
 
 	h.Use(middleware.Logger)
+	h.Use(csrf.Protect(csrfKey, csrf.Secure(false)))
+
 	h.Get("/", h.Home())
 	h.Route("/threads", func(r chi.Router) {
 		// THREADS
