@@ -40,11 +40,11 @@ func (c *CommentStore) CreateComment(cmt *goreddit.Comment) error {
 }
 
 func (c *CommentStore) UpdateComment(t *goreddit.Comment) error {
-	if err := c.Get(t, `UPDATE comments SET post_id = $1, content = $2, votes = $3 WHERE id = $1 RETURNING *`,
-		t.ID,
+	if err := c.Get(t, `UPDATE comments SET post_id = $1, content = $2, votes = $3 WHERE id = $4 RETURNING *`,
 		t.PostID,
 		t.Content,
-		t.Votes); err != nil {
+		t.Votes,
+		t.ID); err != nil {
 		return fmt.Errorf("Error updating comment: %w", err)
 	}
 	return nil
