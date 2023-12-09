@@ -6,6 +6,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
+	"github.com/gorilla/csrf"
 	"github.com/noloman/goreddit"
 )
 
@@ -47,6 +48,7 @@ func (h *PostsHandler) Show() http.HandlerFunc {
 		Thread   goreddit.Thread
 		Post     goreddit.Post
 		Comments []goreddit.Comment
+		CSRF     template.HTML
 	}
 
 	tmpl := template.Must(template.ParseFiles("templates/layout.html", "templates/post.html"))
@@ -82,13 +84,14 @@ func (h *PostsHandler) Show() http.HandlerFunc {
 			http.NotFound(w, r)
 			return
 		}
-		tmpl.Execute(w, data{Thread: t, Post: p, Comments: cc})
+		tmpl.Execute(w, data{Thread: t, Post: p, Comments: cc, CSRF: csrf.TemplateField(r)})
 	}
 }
 
 func (h *PostsHandler) Create() http.HandlerFunc {
 	type data struct {
 		Thread goreddit.Thread
+		CSRF   template.HTML
 	}
 	tmpl := template.Must(template.ParseFiles("templates/layout.html", "templates/post_create.html"))
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -102,7 +105,7 @@ func (h *PostsHandler) Create() http.HandlerFunc {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 		}
 
-		tmpl.Execute(w, data{Thread: t})
+		tmpl.Execute(w, data{Thread: t, CSRF: csrf.TemplateField(r)})
 	}
 }
 
