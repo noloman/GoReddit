@@ -4,6 +4,7 @@ import (
 	"html/template"
 	"net/http"
 
+	"github.com/alexedwards/scs/v2"
 	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
 	"github.com/gorilla/csrf"
@@ -12,6 +13,7 @@ import (
 
 type PostsHandler struct {
 	store goreddit.Store
+	sessions *scs.SessionManager
 }
 
 func (h *PostsHandler) Vote() http.HandlerFunc {

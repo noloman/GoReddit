@@ -4,6 +4,7 @@ import (
 	"html/template"
 	"net/http"
 
+	"github.com/alexedwards/scs/v2"
 	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
 	"github.com/gorilla/csrf"
@@ -11,7 +12,8 @@ import (
 )
 
 type ThreadsHandler struct {
-	store goreddit.Store
+	store    goreddit.Store
+	sessions *scs.SessionManager
 }
 
 func (h *ThreadsHandler) List() http.HandlerFunc {
@@ -43,7 +45,7 @@ func (h *ThreadsHandler) Show() http.HandlerFunc {
 	type data struct {
 		Thread goreddit.Thread
 		Posts  []goreddit.Post
-		CSRF template.HTML
+		CSRF   template.HTML
 	}
 	tmpl := template.Must(template.ParseFiles("templates/layout.html", "templates/thread.html"))
 	return func(w http.ResponseWriter, r *http.Request) {

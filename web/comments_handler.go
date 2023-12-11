@@ -3,6 +3,7 @@ package web
 import (
 	"net/http"
 
+	"github.com/alexedwards/scs/v2"
 	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
 	"github.com/noloman/goreddit"
@@ -10,6 +11,7 @@ import (
 
 type CommentsHandler struct {
 	store goreddit.Store
+	sessions *scs.SessionManager
 }
 
 func (h *CommentsHandler) Vote() http.HandlerFunc {
