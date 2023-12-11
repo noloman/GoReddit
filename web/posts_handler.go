@@ -12,7 +12,7 @@ import (
 )
 
 type PostsHandler struct {
-	store goreddit.Store
+	store    goreddit.Store
 	sessions *scs.SessionManager
 }
 
@@ -92,8 +92,9 @@ func (h *PostsHandler) Show() http.HandlerFunc {
 
 func (h *PostsHandler) Create() http.HandlerFunc {
 	type data struct {
-		Thread goreddit.Thread
-		CSRF   template.HTML
+		SessionData SessionData
+		Thread      goreddit.Thread
+		CSRF        template.HTML
 	}
 	tmpl := template.Must(template.ParseFiles("templates/layout.html", "templates/post_create.html"))
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -107,7 +108,7 @@ func (h *PostsHandler) Create() http.HandlerFunc {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 		}
 
-		tmpl.Execute(w, data{Thread: t, CSRF: csrf.TemplateField(r)})
+		tmpl.Execute(w, data{Thread: t, CSRF: csrf.TemplateField(r), SessionData: GetSessionData(h.sessions, r.Context())})
 	}
 }
 
@@ -136,6 +137,7 @@ func (h *PostsHandler) Store() http.HandlerFunc {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
+		h.sessions.Put(r.Context(), "flash", "Post created successfully!")
 		http.Redirect(w, r, "/threads/"+t.ID.String()+"/"+p.ID.String(), http.StatusFound)
 	}
 }

@@ -18,6 +18,7 @@ type ThreadsHandler struct {
 
 func (h *ThreadsHandler) List() http.HandlerFunc {
 	type data struct {
+		SessionData
 		Threads []goreddit.Thread
 	}
 	tmpl := template.Must(template.ParseFiles("templates/layout.html", "templates/threads.html"))
@@ -27,22 +28,24 @@ func (h *ThreadsHandler) List() http.HandlerFunc {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
-		tmpl.Execute(w, data{Threads: tt})
+		tmpl.Execute(w, data{Threads: tt, SessionData: GetSessionData(h.sessions, r.Context())})
 	}
 }
 
 func (h *ThreadsHandler) Create() http.HandlerFunc {
 	type data struct {
+		SessionData
 		CSRF template.HTML
 	}
 	tmpl := template.Must(template.ParseFiles("templates/layout.html", "templates/thread_create.html"))
 	return func(w http.ResponseWriter, r *http.Request) {
-		tmpl.Execute(w, data{CSRF: csrf.TemplateField(r)})
+		tmpl.Execute(w, data{CSRF: csrf.TemplateField(r), SessionData: GetSessionData(h.sessions, r.Context())})
 	}
 }
 
 func (h *ThreadsHandler) Show() http.HandlerFunc {
 	type data struct {
+		SessionData
 		Thread goreddit.Thread
 		Posts  []goreddit.Post
 		CSRF   template.HTML
@@ -65,7 +68,7 @@ func (h *ThreadsHandler) Show() http.HandlerFunc {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
-		tmpl.Execute(w, data{Thread: t, Posts: pp, CSRF: csrf.TemplateField(r)})
+		tmpl.Execute(w, data{Thread: t, Posts: pp, CSRF: csrf.TemplateField(r), SessionData: GetSessionData(h.sessions, r.Context())})
 	}
 }
 
@@ -82,6 +85,7 @@ func (h *ThreadsHandler) Store() http.HandlerFunc {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
+		h.sessions.Put(r.Context(), "flash", "Thread created successfully!")
 		http.Redirect(w, r, "/threads", http.StatusFound)
 	}
 }
@@ -98,6 +102,7 @@ func (h *ThreadsHandler) Delete() http.HandlerFunc {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
+		h.sessions.Put(r.Context(), "flash", "Thread deleted successfully!")
 		http.Redirect(w, r, "/threads", http.StatusFound)
 	}
 }

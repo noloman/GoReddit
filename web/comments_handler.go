@@ -10,7 +10,7 @@ import (
 )
 
 type CommentsHandler struct {
-	store goreddit.Store
+	store    goreddit.Store
 	sessions *scs.SessionManager
 }
 
@@ -63,6 +63,7 @@ func (h *CommentsHandler) Store() http.HandlerFunc {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
+		h.sessions.Put(r.Context(), "flash", "Comment created successfully!")
 		http.Redirect(w, r, r.Referer(), http.StatusFound)
 	}
 }

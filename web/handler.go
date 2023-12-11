@@ -3,6 +3,7 @@ package web
 import (
 	"html/template"
 	"net/http"
+	"sync"
 
 	"github.com/alexedwards/scs/v2"
 	"github.com/go-chi/chi/v5"
@@ -13,13 +14,15 @@ import (
 
 type Handler struct {
 	*chi.Mux
-	store goreddit.Store
+	store    goreddit.Store
+	sessions *scs.SessionManager
 }
 
 func NewHandler(store goreddit.Store, sessions *scs.SessionManager, csrfKey []byte) *Handler {
 	h := &Handler{
-		Mux:   chi.NewMux(),
-		store: store,
+		Mux:      chi.NewMux(),
+		store:    store,
+		sessions: sessions,
 	}
 
 	threads := ThreadsHandler{store: store, sessions: sessions}
@@ -54,8 +57,10 @@ func NewHandler(store goreddit.Store, sessions *scs.SessionManager, csrfKey []by
 
 func (h *Handler) Home() http.HandlerFunc {
 	type data struct {
+		SessionData
 		Posts []goreddit.Post
 	}
+
 	tmpl := template.Must(template.ParseFiles("templates/layout.html", "templates/home.html"))
 	return func(w http.ResponseWriter, r *http.Request) {
 		pp, err := h.store.Posts()
@@ -63,6 +68,9 @@ func (h *Handler) Home() http.HandlerFunc {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
-		tmpl.Execute(w, &data{Posts: pp})
+		tmpl.Execute(w, &data{
+			Posts:       pp,
+			SessionData: GetSessionData(h.sessions, r.Context()),
+		})
 	}
 }

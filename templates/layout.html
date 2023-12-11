@@ -23,6 +23,12 @@
     <div class="container py-5">
         <div class="row">
             <div class="col-xl-8 order-1 order-xl-0">
+                {{with .FlashMessage}}
+                <div class="alert alert-primary alert-dismissible fade show" role="alert">
+                    {{.}}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+                {{end}}
                 {{block "content" .}}{{end}}
             </div>
             <div class="col-xl-4 order-0 order-xl-1">
@@ -30,6 +36,9 @@
             </div>
         </div>
     </div>
+    <script>
+        $('.alert').alert();
+    </script>
 </body>
 
 </html>
