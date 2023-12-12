@@ -3,7 +3,7 @@ module github.com/noloman/goreddit
 go 1.21.5
 
 require (
-	github.com/alexedwards/scs/postgresstore v0.0.0-20231113091146-cef4b05350c8
+	github.com/alexedwards/scs/postgresstore v0.1.1
 	github.com/alexedwards/scs/v2 v2.7.0
 	github.com/go-chi/chi/v5 v5.0.10
 	github.com/google/uuid v1.5.0
