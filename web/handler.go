@@ -26,6 +26,7 @@ func NewHandler(store goreddit.Store, sessions *scs.SessionManager, csrfKey []by
 	threads := ThreadsHandler{store: store, sessions: sessions}
 	comments := CommentsHandler{store: store, sessions: sessions}
 	posts := PostsHandler{store: store, sessions: sessions}
+	users := UserHandler{store: store, sessions: sessions}
 
 	h.Use(middleware.Logger)
 	h.Use(csrf.Protect(csrfKey, csrf.Secure(false)))
@@ -50,6 +51,8 @@ func NewHandler(store goreddit.Store, sessions *scs.SessionManager, csrfKey []by
 	})
 	h.Get("/comments/{id}/vote", comments.Vote())
 	h.Get("/posts/{id}/vote", posts.Vote()) // TODO Should this be here or inside /threads?
+	h.Get("/register", users.Register())
+	h.Post("/register", users.RegisterSubmit())
 	return h
 }
 

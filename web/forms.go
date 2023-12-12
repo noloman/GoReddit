@@ -6,6 +6,7 @@ func init() {
 	gob.Register(CreatePostForm{})
 	gob.Register(CreateThreadForm{})
 	gob.Register(CreateCommentForm{})
+	gob.Register(RegisterUserForm{})
 	gob.Register(FormErrors{})
 }
 
@@ -28,8 +29,16 @@ type CreateCommentForm struct {
 	Errors  FormErrors
 }
 
+type RegisterUserForm struct {
+	Username      string
+	Password      string
+	UsernameTaken bool
+	Errors        FormErrors
+}
+
 // Validate validates the post form with Title and Content
 func (f *CreatePostForm) Validate() bool {
+	f.Errors = FormErrors{}
 	if f.Title == "" {
 		f.Errors["Title"] = "Title is required."
 	}
@@ -42,6 +51,7 @@ func (f *CreatePostForm) Validate() bool {
 
 // Validate validates the thread form with Title and Description
 func (f *CreateThreadForm) Validate() bool {
+	f.Errors = FormErrors{}
 	if f.Title == "" {
 		f.Errors["Title"] = "Title is required."
 	}
@@ -54,8 +64,37 @@ func (f *CreateThreadForm) Validate() bool {
 
 // Validate validates the comment form with Content
 func (f *CreateCommentForm) Validate() bool {
+	f.Errors = FormErrors{}
 	if f.Content == "" {
 		f.Errors["Content"] = "Content is required."
+	}
+
+	return len(f.Errors) == 0
+}
+
+// Validate validates the user registration form with Username and Password
+func (f *RegisterUserForm) Validate() bool {
+	f.Errors = FormErrors{}
+	if f.Username == "" {
+		f.Errors["Username"] = "Username is required."
+	} else if f.UsernameTaken {
+		f.Errors["Username"] = "Username is already taken."
+	} else if len(f.Username) < 3 {
+		f.Errors["Username"] = "Username must be at least 3 characters."
+	} else if len(f.Username) > 20 {
+		f.Errors["Username"] = "Username must be at most 20 characters."
+	}
+
+	if f.Password == "" {
+		f.Errors["Password"] = "Password is required."
+	} else if len(f.Password) < 8 {
+		f.Errors["Password"] = "Password must be at least 8 characters."
+	} else if len(f.Password) > 50 {
+		f.Errors["Password"] = "Password must be at most 50 characters."
+	} else if f.Password == f.Username {
+		f.Errors["Password"] = "Password must not be the same as the Username."
+	} else if f.Password == "password" {
+		f.Errors["Password"] = "Password must not be 'password'."
 	}
 
 	return len(f.Errors) == 0

@@ -48,7 +48,6 @@ func (h *CommentsHandler) Store() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		form := CreateCommentForm{
 			Content: r.FormValue("content"),
-			Errors:  FormErrors{},
 		}
 		if !form.Validate() {
 			h.sessions.Put(r.Context(), "form", form)

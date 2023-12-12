@@ -77,7 +77,6 @@ func (h *ThreadsHandler) Store() http.HandlerFunc {
 		form := CreateThreadForm{
 			Title:       r.FormValue("title"),
 			Description: r.FormValue("description"),
-			Errors: 	FormErrors{},
 		}
 		if !form.Validate() {
 			h.sessions.Put(r.Context(), "form", form)

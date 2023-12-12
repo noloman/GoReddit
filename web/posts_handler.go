@@ -122,7 +122,6 @@ func (h *PostsHandler) Store() http.HandlerFunc {
 		form := CreatePostForm{
 			Title:   r.FormValue("title"),
 			Content: r.FormValue("content"),
-			Errors:  FormErrors{},
 		}
 		if !form.Validate() {
 			h.sessions.Put(r.Context(), "form", form)

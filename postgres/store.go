@@ -12,6 +12,7 @@ type Store struct {
 	*ThreadStore
 	*PostStore
 	*CommentStore
+	*UserStore
 }
 
 // NewStore creates a concrete implementation of the Store struct with the dataSourceName
@@ -27,5 +28,6 @@ func NewStore(dataSourceName string) (*Store, error) {
 		ThreadStore:  &ThreadStore{DB: db},
 		PostStore:    &PostStore{DB: db},
 		CommentStore: &CommentStore{DB: db},
+		UserStore:    &UserStore{DB: db},
 	}, nil
 }
