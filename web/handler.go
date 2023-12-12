@@ -1,15 +1,13 @@
 package web
 
 import (
-	"html/template"
-	"net/http"
-	"sync"
-
 	"github.com/alexedwards/scs/v2"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/gorilla/csrf"
 	"github.com/noloman/goreddit"
+	"html/template"
+	"net/http"
 )
 
 type Handler struct {

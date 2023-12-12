@@ -74,13 +74,20 @@ func (h *ThreadsHandler) Show() http.HandlerFunc {
 
 func (h *ThreadsHandler) Store() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		title := r.FormValue("title")
-		description := r.FormValue("description")
-
+		form := CreateThreadForm{
+			Title:       r.FormValue("title"),
+			Description: r.FormValue("description"),
+			Errors: 	FormErrors{},
+		}
+		if !form.Validate() {
+			h.sessions.Put(r.Context(), "form", form)
+			http.Redirect(w, r, r.Referer(), http.StatusFound)
+			return
+		}
 		if err := h.store.CreateThread(&goreddit.Thread{
 			ID:          uuid.New(),
-			Title:       title,
-			Description: description,
+			Title:       form.Title,
+			Description: form.Description,
 		}); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return

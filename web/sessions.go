@@ -23,6 +23,7 @@ func NewSessionManager(dataSourceName string) (*scs.SessionManager, error) {
 type SessionData struct {
 	FlashMessage string
 	// UserID uuid.UUID
+	Form interface{}
 }
 
 func GetSessionData(session *scs.SessionManager, ctx context.Context) SessionData {
@@ -30,5 +31,9 @@ func GetSessionData(session *scs.SessionManager, ctx context.Context) SessionDat
 
 	data.FlashMessage = session.PopString(ctx, "flash")
 	// data.UserID = session.Get(ctx, "userID").(uuid.UUID)
+	data.Form = session.Pop(ctx, "form")
+	if data.Form == nil {
+		data.Form = map[string]string{}
+	}
 	return data
 }

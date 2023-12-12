@@ -92,9 +92,9 @@ func (h *PostsHandler) Show() http.HandlerFunc {
 
 func (h *PostsHandler) Create() http.HandlerFunc {
 	type data struct {
-		SessionData SessionData
-		Thread      goreddit.Thread
-		CSRF        template.HTML
+		SessionData
+		Thread goreddit.Thread
+		CSRF   template.HTML
 	}
 	tmpl := template.Must(template.ParseFiles("templates/layout.html", "templates/post_create.html"))
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -107,15 +107,27 @@ func (h *PostsHandler) Create() http.HandlerFunc {
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 		}
-
-		tmpl.Execute(w, data{Thread: t, CSRF: csrf.TemplateField(r), SessionData: GetSessionData(h.sessions, r.Context())})
+		data := data{
+			Thread:      t,
+			CSRF:        csrf.TemplateField(r),
+			SessionData: GetSessionData(h.sessions, r.Context()),
+		}
+		tmpl.Execute(w, data)
 	}
 }
 
 func (h *PostsHandler) Store() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		title := r.FormValue("title")
-		content := r.FormValue("content")
+		form := CreatePostForm{
+			Title:   r.FormValue("title"),
+			Content: r.FormValue("content"),
+			Errors:  FormErrors{},
+		}
+		if !form.Validate() {
+			h.sessions.Put(r.Context(), "form", form)
+			http.Redirect(w, r, r.Referer(), http.StatusFound)
+			return
+		}
 		idStr := chi.URLParam(r, "id")
 		id, err := uuid.Parse(idStr)
 		if err != nil {
@@ -130,8 +142,8 @@ func (h *PostsHandler) Store() http.HandlerFunc {
 		p := &goreddit.Post{
 			ID:       uuid.New(),
 			ThreadID: t.ID,
-			Title:    title,
-			Content:  content,
+			Title:    form.Title,
+			Content:  form.Content,
 		}
 		if err := h.store.CreatePost(p); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
