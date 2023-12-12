@@ -6,7 +6,8 @@ func init() {
 	gob.Register(CreatePostForm{})
 	gob.Register(CreateThreadForm{})
 	gob.Register(CreateCommentForm{})
-	gob.Register(RegisterUserForm{})
+	gob.Register(RegisterForm{})
+	gob.Register(LoginForm{})
 	gob.Register(FormErrors{})
 }
 
@@ -29,11 +30,18 @@ type CreateCommentForm struct {
 	Errors  FormErrors
 }
 
-type RegisterUserForm struct {
+type RegisterForm struct {
 	Username      string
 	Password      string
 	UsernameTaken bool
 	Errors        FormErrors
+}
+
+type LoginForm struct {
+	Username             string
+	Password             string
+	IncorrectCredentials bool
+	Errors               FormErrors
 }
 
 // Validate validates the post form with Title and Content
@@ -73,7 +81,7 @@ func (f *CreateCommentForm) Validate() bool {
 }
 
 // Validate validates the user registration form with Username and Password
-func (f *RegisterUserForm) Validate() bool {
+func (f *RegisterForm) Validate() bool {
 	f.Errors = FormErrors{}
 	if f.Username == "" {
 		f.Errors["Username"] = "Username is required."
@@ -95,6 +103,22 @@ func (f *RegisterUserForm) Validate() bool {
 		f.Errors["Password"] = "Password must not be the same as the Username."
 	} else if f.Password == "password" {
 		f.Errors["Password"] = "Password must not be 'password'."
+	}
+
+	return len(f.Errors) == 0
+}
+
+// Validate validates the user login form with Username and Password
+func (f *LoginForm) Validate() bool {
+	f.Errors = FormErrors{}
+	if f.Username == "" {
+		f.Errors["Username"] = "Username is required."
+	} else if f.IncorrectCredentials {
+		f.Errors["Username"] = "User and/or password are incorrect."
+	}
+
+	if f.Password == "" {
+		f.Errors["Password"] = "Please enter a password."
 	}
 
 	return len(f.Errors) == 0

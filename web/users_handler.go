@@ -5,7 +5,6 @@ import (
 	"net/http"
 
 	"github.com/alexedwards/scs/v2"
-	"github.com/google/uuid"
 	"github.com/gorilla/csrf"
 	"github.com/noloman/goreddit"
 	"golang.org/x/crypto/bcrypt"
@@ -29,7 +28,7 @@ func (h *UserHandler) Register() http.HandlerFunc {
 
 func (h *UserHandler) RegisterSubmit() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		form := RegisterUserForm{
+		form := RegisterForm{
 			Username:      r.FormValue("username"),
 			Password:      r.FormValue("password"),
 			UsernameTaken: false,
@@ -42,22 +41,49 @@ func (h *UserHandler) RegisterSubmit() http.HandlerFunc {
 			http.Redirect(w, r, "/register", http.StatusFound)
 			return
 		}
+	}
+}
 
-		password, err := bcrypt.GenerateFromPassword([]byte(form.Password), bcrypt.DefaultCost)
+func (h *UserHandler) Login() http.HandlerFunc {
+	type data struct {
+		SessionData
+		CSRF template.HTML
+	}
+	tmpl := template.Must(template.ParseFiles("templates/layout.html", "templates/user_login.html"))
+	return func(w http.ResponseWriter, r *http.Request) {
+		tmpl.Execute(w, data{CSRF: csrf.TemplateField(r), SessionData: GetSessionData(h.sessions, r.Context())})
+	}
+}
+
+func (h *UserHandler) LoginSubmit() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		form := LoginForm{
+			Username:             r.FormValue("username"),
+			Password:             r.FormValue("password"),
+			IncorrectCredentials: false,
+		}
+		user, err := h.store.UserByUsername(form.Username)
 		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
+			form.IncorrectCredentials = true
+		} else {
+			compareError := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(form.Password))
+			form.IncorrectCredentials = compareError != nil
+		}
+		if !form.Validate() {
+			h.sessions.Put(r.Context(), "form", form)
+			http.Redirect(w, r, "/login", http.StatusFound)
 			return
 		}
+		h.sessions.Put(r.Context(), "user_id", user.ID)
+		h.sessions.Put(r.Context(), "flash", "You have been logged in successfully")
+		http.Redirect(w, r, "/", http.StatusFound)
+	}
+}
 
-		if err := h.store.CreateUser(&goreddit.User{
-			ID:       uuid.New(),
-			Username: form.Username,
-			Password: string(password),
-		}); err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-		h.sessions.Put(r.Context(), "flash", "You have successfully registered! Please login.")
-		http.Redirect(w, r, "/login", http.StatusFound)
+func (h *UserHandler) Logout() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		h.sessions.Remove(r.Context(), "user_id")
+		h.sessions.Put(r.Context(), "flash", "You have been logged out successfully")
+		http.Redirect(w, r, "/", http.StatusFound)
 	}
 }
