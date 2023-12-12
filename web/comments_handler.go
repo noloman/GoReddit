@@ -1,12 +1,11 @@
 package web
 
 import (
-	"net/http"
-
 	"github.com/alexedwards/scs/v2"
 	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
 	"github.com/noloman/goreddit"
+	"net/http"
 )
 
 type CommentsHandler struct {
@@ -47,7 +46,15 @@ func (h *CommentsHandler) Vote() http.HandlerFunc {
 
 func (h *CommentsHandler) Store() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		content := r.FormValue("content")
+		form := CreateCommentForm{
+			Content: r.FormValue("content"),
+			Errors:  FormErrors{},
+		}
+		if !form.Validate() {
+			h.sessions.Put(r.Context(), "form", form)
+			http.Redirect(w, r, r.Referer(), http.StatusFound)
+			return
+		}
 		idStr := chi.URLParam(r, "postID")
 		id, err := uuid.Parse(idStr)
 		if err != nil {
@@ -58,7 +65,7 @@ func (h *CommentsHandler) Store() http.HandlerFunc {
 			&goreddit.Comment{
 				ID:      uuid.New(),
 				PostID:  id,
-				Content: content,
+				Content: form.Content,
 			}); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return

@@ -47,6 +47,7 @@ func (h *PostsHandler) Vote() http.HandlerFunc {
 }
 func (h *PostsHandler) Show() http.HandlerFunc {
 	type data struct {
+		SessionData
 		Thread   goreddit.Thread
 		Post     goreddit.Post
 		Comments []goreddit.Comment
@@ -86,7 +87,7 @@ func (h *PostsHandler) Show() http.HandlerFunc {
 			http.NotFound(w, r)
 			return
 		}
-		tmpl.Execute(w, data{Thread: t, Post: p, Comments: cc, CSRF: csrf.TemplateField(r)})
+		tmpl.Execute(w, data{Thread: t, Post: p, Comments: cc, CSRF: csrf.TemplateField(r), SessionData: GetSessionData(h.sessions, r.Context())})
 	}
 }
 
