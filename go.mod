@@ -5,7 +5,7 @@ go 1.21.5
 require (
 	github.com/alexedwards/scs/postgresstore v2.7.0
 	github.com/alexedwards/scs/v2 v2.7.0
-	github.com/go-chi/chi/v5 v5.0.10
+	github.com/go-chi/chi/v5 v5.0.11
 	github.com/google/uuid v1.5.0
 	github.com/gorilla/csrf v1.7.2
 	github.com/jmoiron/sqlx v1.3.5
