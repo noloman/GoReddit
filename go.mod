@@ -1,6 +1,6 @@
 module github.com/noloman/goreddit
 
-go 1.21.5
+go 1.21.6
 
 require (
 	github.com/alexedwards/scs/postgresstore v2.7.0
