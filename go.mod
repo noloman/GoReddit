@@ -10,7 +10,7 @@ require (
 	github.com/gorilla/csrf v1.7.2
 	github.com/jmoiron/sqlx v1.4.0
 	github.com/lib/pq v1.10.9
-	golang.org/x/crypto v0.27.0
+	golang.org/x/crypto v0.28.0
 )
 
 require github.com/gorilla/securecookie v1.1.2 // indirect
